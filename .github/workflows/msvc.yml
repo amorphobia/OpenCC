@@ -1,0 +1,26 @@
+name: MSVC
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: build
+      run: |
+        cmake -Ax64 -S. -Bbuild -DCMAKE_INSTALL_PREFIX:PATH=. -DENABLE_GTEST:BOOL=ON -DENABLE_BENCHMARK:BOOL=ON -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --config Release --target install
+    - name: test
+      run: |
+        cd build
+        ctest --verbose -C release
+    - name: pack
+      run: 7z a OpenCC.zip build/bin build/include build/lib build/share
+    - name: upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: OpenCC
+        path: OpenCC.zip
